@@ -24,30 +24,29 @@ int main(void) {
 	const char *channelName = "testChannel";
 	const int expectedLowValue = 0;
 	const int expectedHighValue = 1;
-	const double sampleRate = 100;  // Sample rate in Hz per channel
-	const unsigned int sampsPerChanToRead = 500;
+	const double sampleRate = 1000000;  // Sample rate in Hz per channel
+	const unsigned int numberOfSecondsToRead = 180;
+	const unsigned int sampsPerChanToRead = sampleRate * numberOfSecondsToRead;
 	const unsigned int sizeOfReadArray = numberOfChannels * sampsPerChanToRead;
 	double *readArray = new double[sizeOfReadArray];
 	int sampsPerChanRead;
-	const double triggerLevel = .8;
+	//const double triggerLevel = .8;
 	char errorString[2048];
 
 	DAQmxErrChk(DAQmxCreateTask(taskName, &task));
 	DAQmxErrChk(DAQmxCreateAIVoltageChan(task, physicalChannelNames, channelName, DAQmx_Val_Diff, expectedLowValue, expectedHighValue, DAQmx_Val_Volts, NULL));
 	DAQmxErrChk(DAQmxCfgSampClkTiming(task, NULL, sampleRate, DAQmx_Val_Rising, DAQmx_Val_FiniteSamps, sampsPerChanToRead));
-	DAQmxErrChk(DAQmxCfgAnlgEdgeStartTrig(task, "cDAQ1Mod1/ai0", DAQmx_Val_RisingSlope, triggerLevel));
 	DAQmxErrChk(DAQmxStartTask(task));
 
 	//double timeToWait = 30;  // wait 30 seconds max to trigger and read data
 	//DAQmxErrChk(DAQmxWaitUntilTaskDone(task, timeToWait));
 	DAQmxErrChk(DAQmxReadAnalogF64(task, -1, DAQmx_Val_WaitInfinitely, DAQmx_Val_GroupByScanNumber, readArray, sizeOfReadArray, &sampsPerChanRead, NULL));
-	printf("%s", errorString);
-	for (int i = 0; i < sampsPerChanRead; ++i) {
-		printf("%.2lf ", readArray[i]);
-		if (i % 9 == 0 && i != 0) {
-			printf("\n");
-		}
-	}
+//	for (int i = 0; i < sizeOfReadArray; ++i) {
+//		printf("%.2lf ", readArray[i]);
+//		if (i % 9 == 0 && i != 0) {
+//			printf("\n");
+//		}
+//	}
 
 	Error:
 		if(DAQmxFailed(error))
@@ -63,7 +62,7 @@ int main(void) {
 			printf("DAQmx Error: %s\n", errorString);
 		}
 
-	delete readArray;
+		delete readArray;
 
 	printf("\n%d samples per channel read supposedly\n", sampsPerChanRead);
 	return 0;
