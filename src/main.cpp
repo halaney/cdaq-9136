@@ -32,9 +32,10 @@ int main(void)
 	const char *channelName = "testChannel";
 	const int expectedLowValue = 0;
 	const int expectedHighValue = 1;
-	const double sampleRate = 10000;  // Sample rate in Hz per channel
-	const unsigned int numberOfSecondsToRead = 10;
+	const double sampleRate = 1000000;  // Sample rate in Hz per channel (NI-9223 has max sampling rate of 1 MHz)
+	const unsigned int numberOfSecondsToRead = 125;
 	const unsigned int sampsPerChanToRead = sampleRate * numberOfSecondsToRead;
+	// 125x10^6 is close to the max amount of doubles you can have before the system claims you've used too much memory
 	const unsigned int sizeOfReadArray = numberOfChannels * sampsPerChanToRead;
 	const int sizeOfErrorString = 2048;
 	double *readArray = new double[sizeOfReadArray];  // This will store our data
