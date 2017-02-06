@@ -6,64 +6,64 @@
 // Description : Reads from the cDAQ-9136
 //============================================================================
 
-// Using stdio.h because of a weird windows bug with to_string() in iostream
+// Using stdio.h because of a weird windows bug with to_string() in iostream for MiniGW
 #include <stdio.h>
 #include <NIDAQmx.h>
 
-//TODO: Wrap all DAQmx calls in a macro that checks for return error
-#define DAQmxErrChk(functionCall) if(DAQmxFailed(error=(functionCall))) goto Error; else
 
-int main(void) {
-	printf("Hello World!\n");
+// Checks to see if the API call returned an error and if it did what error
+void DAQmxErrorCheck(int errorCode, char *errorString, int sizeOfErrorString)
+{
+	if(DAQmxFailed(errorCode))
+	{
+		DAQmxGetExtendedErrorInfo(errorString, sizeOfErrorString);
+		printf("DAQmx Error: %s\n", errorString);
+	}
+}
 
+
+int main(void)
+{
+	// Create necessary variables
 	TaskHandle task;
-	int error = 0;
 	const unsigned int numberOfChannels = 1;
-	const char *physicalChannelNames = "cDAQ1Mod1/ai0";  // "cDAQ1Mod1/ai0:3, cDAQ1Mod2/ai0:3"
+	const char *physicalChannelNames = "cDAQ1Mod1/ai0";  // "cDAQ1Mod1/ai0:3, cDAQ1Mod2/ai0:3" would use eight channels
 	const char *taskName = "myTask";
 	const char *channelName = "testChannel";
 	const int expectedLowValue = 0;
 	const int expectedHighValue = 1;
-	const double sampleRate = 1000000;  // Sample rate in Hz per channel
-	const unsigned int numberOfSecondsToRead = 180;
+	const double sampleRate = 10000;  // Sample rate in Hz per channel
+	const unsigned int numberOfSecondsToRead = 10;
 	const unsigned int sampsPerChanToRead = sampleRate * numberOfSecondsToRead;
 	const unsigned int sizeOfReadArray = numberOfChannels * sampsPerChanToRead;
-	double *readArray = new double[sizeOfReadArray];
+	const int sizeOfErrorString = 2048;
+	double *readArray = new double[sizeOfReadArray];  // This will store our data
 	int sampsPerChanRead;
-	//const double triggerLevel = .8;
-	char errorString[2048];
+	char errorString[sizeOfErrorString];
 
-	DAQmxErrChk(DAQmxCreateTask(taskName, &task));
-	DAQmxErrChk(DAQmxCreateAIVoltageChan(task, physicalChannelNames, channelName, DAQmx_Val_Diff, expectedLowValue, expectedHighValue, DAQmx_Val_Volts, NULL));
-	DAQmxErrChk(DAQmxCfgSampClkTiming(task, NULL, sampleRate, DAQmx_Val_Rising, DAQmx_Val_FiniteSamps, sampsPerChanToRead));
-	DAQmxErrChk(DAQmxStartTask(task));
+	// Create a "task" for this data acquisition
+	DAQmxErrorCheck(DAQmxCreateTask(taskName, &task), errorString, sizeOfErrorString);
 
-	//double timeToWait = 30;  // wait 30 seconds max to trigger and read data
-	//DAQmxErrChk(DAQmxWaitUntilTaskDone(task, timeToWait));
-	DAQmxErrChk(DAQmxReadAnalogF64(task, -1, DAQmx_Val_WaitInfinitely, DAQmx_Val_GroupByScanNumber, readArray, sizeOfReadArray, &sampsPerChanRead, NULL));
-//	for (int i = 0; i < sizeOfReadArray; ++i) {
-//		printf("%.2lf ", readArray[i]);
-//		if (i % 9 == 0 && i != 0) {
-//			printf("\n");
-//		}
-//	}
+	// Create and add virtual channels to the task to indicate where to read data from
+	DAQmxErrorCheck(DAQmxCreateAIVoltageChan(task, physicalChannelNames, channelName, DAQmx_Val_Diff, expectedLowValue, expectedHighValue, DAQmx_Val_Volts, NULL), errorString, sizeOfErrorString);
 
-	Error:
-		if(DAQmxFailed(error))
-			DAQmxGetExtendedErrorInfo(errorString, 2048);
-		if(task != 0) {
-			/*********************************************/
-			// DAQmx Stop Code
-			/*********************************************/
-			DAQmxStopTask(task);
-			DAQmxClearTask(task);
-		}
-		if(DAQmxFailed(error)) {
-			printf("DAQmx Error: %s\n", errorString);
-		}
+	// Configure timing parameters for reading
+	DAQmxErrorCheck(DAQmxCfgSampClkTiming(task, NULL, sampleRate, DAQmx_Val_Rising, DAQmx_Val_FiniteSamps, sampsPerChanToRead), errorString, sizeOfErrorString);
 
-		delete readArray;
+	// Kick off the task
+	DAQmxErrorCheck(DAQmxStartTask(task), errorString, sizeOfErrorString);
+
+	// Read the data
+	DAQmxErrorCheck(DAQmxReadAnalogF64(task, -1, DAQmx_Val_WaitInfinitely, DAQmx_Val_GroupByScanNumber, readArray, sizeOfReadArray, &sampsPerChanRead, NULL), errorString, sizeOfErrorString);
+
+	// Clear the task out if it exists
+	if(task != 0)
+	{
+		DAQmxStopTask(task);
+		DAQmxClearTask(task);
+	}
 
 	printf("\n%d samples per channel read supposedly\n", sampsPerChanRead);
+	delete readArray;
 	return 0;
 }

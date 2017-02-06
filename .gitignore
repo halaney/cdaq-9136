@@ -26,3 +26,11 @@
 *.exe
 *.out
 *.app
+
+# Project Specific
+.cproject
+*.swp
+.project
+.settings/
+Debug
+
