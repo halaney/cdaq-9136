@@ -8,6 +8,7 @@
 
 // Using stdio.h because of a weird windows bug with to_string() in iostream for MiniGW
 #include <stdio.h>
+#include <math.h>
 #include <NIDAQmx.h>
 
 
@@ -27,18 +28,20 @@ int main(void)
 	// Create necessary variables
 	TaskHandle task;
 	const unsigned int numberOfChannels = 1;
+	const double bitResolutionOf9223 = 16.0;  // Double to ensure floating point arithmetic
+	const double rangeOf9223Voltages = 21.2;  // Actual range of typical values read on NI 9223
 	const char *physicalChannelNames = "cDAQ1Mod1/ai0";  // "cDAQ1Mod1/ai0:3, cDAQ1Mod2/ai0:3" would use eight channels
 	const char *taskName = "myTask";
 	const char *channelName = "testChannel";
 	const int expectedLowValue = 0;
-	const int expectedHighValue = 1;
-	const double sampleRate = 1000000;  // Sample rate in Hz per channel (NI-9223 has max sampling rate of 1 MHz)
-	const unsigned int numberOfSecondsToRead = 125;
+	const int expectedHighValue = 2;
+	const double sampleRate = 500000;  // Sample rate in Hz per channel (NI-9223 has max sampling rate of 1 MHz)
+	const unsigned int numberOfSecondsToRead = 480;
 	const unsigned int sampsPerChanToRead = sampleRate * numberOfSecondsToRead;
 	// 125x10^6 is close to the max amount of doubles you can have before the system claims you've used too much memory
 	const unsigned int sizeOfReadArray = numberOfChannels * sampsPerChanToRead;
 	const int sizeOfErrorString = 2048;
-	double *readArray = new double[sizeOfReadArray];  // This will store our data
+	int16 *readArray = new int16[sizeOfReadArray];  // This will store our data (in unscaled binary resolution)
 	int sampsPerChanRead;
 	char errorString[sizeOfErrorString];
 
@@ -55,7 +58,8 @@ int main(void)
 	DAQmxErrorCheck(DAQmxStartTask(task), errorString, sizeOfErrorString);
 
 	// Read the data
-	DAQmxErrorCheck(DAQmxReadAnalogF64(task, -1, DAQmx_Val_WaitInfinitely, DAQmx_Val_GroupByScanNumber, readArray, sizeOfReadArray, &sampsPerChanRead, NULL), errorString, sizeOfErrorString);
+	DAQmxErrorCheck(DAQmxReadBinaryI16(task, -1, DAQmx_Val_WaitInfinitely, DAQmx_Val_GroupByScanNumber, readArray, sizeOfReadArray, &sampsPerChanRead, NULL), errorString, sizeOfErrorString);
+
 
 	// Clear the task out if it exists
 	if(task != 0)
@@ -64,7 +68,15 @@ int main(void)
 		DAQmxClearTask(task);
 	}
 
+	// Debug statements currently
+	for (unsigned int i = 0; i < sizeof(int16) * 8; ++i)
+	{
+		printf("\n%d", (readArray[0] >> i) & 0x01);
+	}
+	printf("\n%lf", readArray[0] * (rangeOf9223Voltages / static_cast<double>(pow(2.0, bitResolutionOf9223))));
+
 	printf("\n%d samples per channel read supposedly\n", sampsPerChanRead);
 	delete readArray;
+
 	return 0;
 }
