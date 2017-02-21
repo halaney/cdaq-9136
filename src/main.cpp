@@ -1,15 +1,8 @@
-//============================================================================
-// Name        : main.cpp
-// Author      : Andrew Halaney
-// Version     :
-// Copyright   : Your copyright notice
-// Description : Reads from the cDAQ-9136
-//============================================================================
-
-// Using stdio.h because of a weird windows bug with to_string() in iostream for MiniGW
-#include <stdio.h>
+#include <fstream>
+#include <iostream>
 #include <math.h>
 #include <NIDAQmx.h>
+#include "./Wave.h"
 
 
 // Checks to see if the API call returned an error and if it did what error
@@ -18,7 +11,7 @@ void DAQmxErrorCheck(int errorCode, char *errorString, int sizeOfErrorString)
 	if(DAQmxFailed(errorCode))
 	{
 		DAQmxGetExtendedErrorInfo(errorString, sizeOfErrorString);
-		printf("DAQmx Error: %s\n", errorString);
+		std::cout << "DAQmx Error: " << errorString << std::endl;
 	}
 }
 
@@ -34,11 +27,11 @@ int main(void)
 	const char *taskName = "myTask";
 	const char *channelName = "testChannel";
 	const int expectedLowValue = 0;
-	const int expectedHighValue = 2;
-	const double sampleRate = 500000;  // Sample rate in Hz per channel (NI-9223 has max sampling rate of 1 MHz)
-	const unsigned int numberOfSecondsToRead = 480;
+	const int expectedHighValue = 4;
+	const double sampleRate = 10000;  // Sample rate in Hz per channel (NI-9223 has max sampling rate of 1 MHz)
+	const unsigned int numberOfSecondsToRead = 15;
 	const unsigned int sampsPerChanToRead = sampleRate * numberOfSecondsToRead;
-	// 125x10^6 is close to the max amount of doubles you can have before the system claims you've used too much memory
+	// 1GB of memory is close to the max amount you can have before the system claims you've used too much memory
 	const unsigned int sizeOfReadArray = numberOfChannels * sampsPerChanToRead;
 	const int sizeOfErrorString = 2048;
 	int16 *readArray = new int16[sizeOfReadArray];  // This will store our data (in unscaled binary resolution)
@@ -68,14 +61,17 @@ int main(void)
 		DAQmxClearTask(task);
 	}
 
-	// Debug statements currently
-	for (unsigned int i = 0; i < sizeof(int16) * 8; ++i)
-	{
-		printf("\n%d", (readArray[0] >> i) & 0x01);
-	}
-	printf("\n%lf", readArray[0] * (rangeOf9223Voltages / static_cast<double>(pow(2.0, bitResolutionOf9223))));
+	WaveFile fp(readArray, sampsPerChanRead, sampleRate);
+	fp.writeToFile("test.wav");
 
-	printf("\n%d samples per channel read supposedly\n", sampsPerChanRead);
+//	// Debug statements currently
+//	for (unsigned int i = 0; i < sizeof(int16) * 8; ++i)
+//	{
+//		printf("\n%d", (readArray[0] >> i) & 0x01);
+//	}
+//	printf("\n%lf", readArray[0] * (rangeOf9223Voltages / static_cast<double>(pow(2.0, bitResolutionOf9223))));
+
+	std::cout << "\n" << sampsPerChanRead << " samples per channel read supposedly" << std::endl;
 	delete readArray;
 
 	return 0;
