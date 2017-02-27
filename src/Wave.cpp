@@ -6,9 +6,17 @@
 
 
 // Helper function to write numbers in binary to file
-void writeNumberBinary(std::fstream &fp, const int number)
+template <typename T>
+void writeNumberBinary(std::fstream &fp, const T number)
 {
-	fp.write(reinterpret_cast<const char *>(&number), sizeof(number));
+	fp.write(reinterpret_cast<const char *>(&number), sizeof(T));
+}
+
+
+// Helper function to write character array that has no null character
+void writeCharArrayWithoutANull(std::fstream &fp, const char *array, const unsigned int sizeOfArray)
+{
+	fp.write(array, sizeOfArray);
 }
 
 
@@ -49,31 +57,27 @@ void WaveFile::writeToFile(std::string fileName)
 	std::fstream fp;
 	fp.open(fileName.c_str(), std::ios::binary | std::fstream::out);
 
-	//TODO: Determine why filepointer not to chunkSize, test wav file once fixed
-	std::cout << "Beginning of file pointer location: " << fp.tellp() << std::endl;
-
-
 	// Write top level header
-	fp << chunkId;
-	writeNumberBinary(fp, chunkSize);
-	fp << format;
+	writeCharArrayWithoutANull(fp, chunkId, 4);
+	writeNumberBinary<uint32_t>(fp, chunkSize);
+	writeCharArrayWithoutANull(fp, format, 4);
 
 	// Write format chunk
-	fp << fmtSubChunkId;
-	writeNumberBinary(fp, fmtSubChunkSize);
-	writeNumberBinary(fp, fmtTag);
-	writeNumberBinary(fp, channels);
-	writeNumberBinary(fp, sampsPerSecond);
-	writeNumberBinary(fp, avgBytesPerSecond);
-	writeNumberBinary(fp, blockAlign);
-	writeNumberBinary(fp, bitsPerSamp);
+	writeCharArrayWithoutANull(fp, fmtSubChunkId, 4);
+	writeNumberBinary<uint32_t>(fp, fmtSubChunkSize);
+	writeNumberBinary<uint16_t>(fp, fmtTag);
+	writeNumberBinary<uint16_t>(fp, channels);
+	writeNumberBinary<uint32_t>(fp, sampsPerSecond);
+	writeNumberBinary<uint32_t>(fp, avgBytesPerSecond);
+	writeNumberBinary<uint16_t>(fp, blockAlign);
+	writeNumberBinary<uint16_t>(fp, bitsPerSamp);
 
 	// Write data chunk
-	fp << dataSubChunkId;
-	writeNumberBinary(fp, dataSubChunkSize);
+	writeCharArrayWithoutANull(fp, dataSubChunkId, 4);
+	writeNumberBinary<uint32_t>(fp, dataSubChunkSize);
 	for (unsigned int i = 0; i < numberOfDataElements; ++i)
 	{
-		writeNumberBinary(fp, *(data + i));
+		writeNumberBinary<int16_t>(fp, *(data + i));
 	}
 
 	// Check size of file and compare to chunkSize for sanity

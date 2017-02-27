@@ -11,7 +11,6 @@
 class WaveFile
 {
 public:
-
 	// Initializes variables to be written to the wav file
 	// @data: a pointer to the data to be written (not enough memory to copy)
 	// @numberOfDataElements: Number of elements from @data to be written

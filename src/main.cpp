@@ -2,6 +2,7 @@
 #include <iostream>
 #include <math.h>
 #include <NIDAQmx.h>
+#include <stdint.h>
 #include "./Wave.h"
 
 
@@ -34,7 +35,7 @@ int main(void)
 	// 1GB of memory is close to the max amount you can have before the system claims you've used too much memory
 	const unsigned int sizeOfReadArray = numberOfChannels * sampsPerChanToRead;
 	const int sizeOfErrorString = 2048;
-	int16 *readArray = new int16[sizeOfReadArray];  // This will store our data (in unscaled binary resolution)
+	int16_t *readArray = new int16[sizeOfReadArray];  // This will store our data (in unscaled binary resolution)
 	int sampsPerChanRead;
 	char errorString[sizeOfErrorString];
 
