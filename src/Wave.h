@@ -8,6 +8,7 @@
 // A class for creating a wav file (PCM format, single channel,
 // currently 16 bit sample size). This only works on little-endian systems
 // because of the little-endian nature of a wav file.
+// Useful Link: http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
 class WaveFile
 {
 public:

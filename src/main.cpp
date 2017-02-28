@@ -1,8 +1,10 @@
 #include <fstream>
 #include <iostream>
-#include <math.h>
 #include <NIDAQmx.h>
+#include <sstream>
 #include <stdint.h>
+#include <time.h>
+
 #include "./Wave.h"
 
 
@@ -27,8 +29,8 @@ int main(void)
 	const char *physicalChannelNames = "cDAQ1Mod1/ai0";  // "cDAQ1Mod1/ai0:3, cDAQ1Mod2/ai0:3" would use eight channels
 	const char *taskName = "myTask";
 	const char *channelName = "testChannel";
-	const int expectedLowValue = 0;
-	const int expectedHighValue = 4;
+	const int expectedLowValue = -10;
+	const int expectedHighValue = 10;
 	const double sampleRate = 10000;  // Sample rate in Hz per channel (NI-9223 has max sampling rate of 1 MHz)
 	const unsigned int numberOfSecondsToRead = 15;
 	const unsigned int sampsPerChanToRead = sampleRate * numberOfSecondsToRead;
@@ -48,12 +50,20 @@ int main(void)
 	// Configure timing parameters for reading
 	DAQmxErrorCheck(DAQmxCfgSampClkTiming(task, NULL, sampleRate, DAQmx_Val_Rising, DAQmx_Val_FiniteSamps, sampsPerChanToRead), errorString, sizeOfErrorString);
 
+
+
 	// Kick off the task
 	DAQmxErrorCheck(DAQmxStartTask(task), errorString, sizeOfErrorString);
 
-	// Read the data
+	// Get the time for the filename and read the data
+	time_t rawtime;
+	struct tm *timeinfo;
+	char fileNameBuffer[200];
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	strftime(fileNameBuffer, 100,
+			"/home/admin/SensorReader/output/%m-%d-%Y_%H_%M_%S", timeinfo);
 	DAQmxErrorCheck(DAQmxReadBinaryI16(task, -1, DAQmx_Val_WaitInfinitely, DAQmx_Val_GroupByScanNumber, readArray, sizeOfReadArray, &sampsPerChanRead, NULL), errorString, sizeOfErrorString);
-
 
 	// Clear the task out if it exists
 	if(task != 0)
@@ -62,17 +72,18 @@ int main(void)
 		DAQmxClearTask(task);
 	}
 
-	WaveFile fp(readArray, sampsPerChanRead, sampleRate);
-	fp.writeToFile("test.wav");
+	// Write data out to file
+	for (unsigned int i = 0; i < numberOfChannels; ++i)
+	{
+		std::stringstream ss;
+		ss << fileNameBuffer << "-channel" << i << ".wav";
+		std::string fileName = ss.str();
+		WaveFile fp(readArray + (i * sampsPerChanRead), sampsPerChanRead, sampleRate);
+		std::cout << "Writing: " << fileName << std::endl;
+		fp.writeToFile(fileName);
+	}
 
-//	// Debug statements currently
-//	for (unsigned int i = 0; i < sizeof(int16) * 8; ++i)
-//	{
-//		printf("\n%d", (readArray[0] >> i) & 0x01);
-//	}
-//	printf("\n%lf", readArray[0] * (rangeOf9223Voltages / static_cast<double>(pow(2.0, bitResolutionOf9223))));
-
-	std::cout << "\n" << sampsPerChanRead << " samples per channel read supposedly" << std::endl;
+	std::cout << "\n" << sampsPerChanRead << " samples per channel read" << std::endl;
 	delete readArray;
 
 	return 0;
