@@ -72,6 +72,7 @@ int main(void)
 		DAQmxClearTask(task);
 	}
 
+	clock_t beginWriteTime = clock();
 	// Write data out to file
 	for (unsigned int i = 0; i < numberOfChannels; ++i)
 	{
@@ -82,6 +83,9 @@ int main(void)
 		std::cout << "Writing: " << fileName << std::endl;
 		fp.writeToFile(fileName);
 	}
+	clock_t endWriteTime = clock();
+	double timeSpent = (double)(endWriteTime - beginWriteTime) / CLOCKS_PER_SEC;
+	std::cout << "Time to write files in seconds: " << timeSpent << std::endl;
 
 	std::cout << "\n" << sampsPerChanRead << " samples per channel read" << std::endl;
 	delete readArray;
