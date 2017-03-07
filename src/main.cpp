@@ -23,20 +23,21 @@ int main(void)
 {
 	// Create necessary variables
 	TaskHandle task;
-	const unsigned int numberOfChannels = 1;
-	const double bitResolutionOf9223 = 16.0;  // Double to ensure floating point arithmetic
-	const double rangeOf9223Voltages = 21.2;  // Actual range of typical values read on NI 9223
-	const char *physicalChannelNames = "cDAQ1Mod1/ai0";  // "cDAQ1Mod1/ai0:3, cDAQ1Mod2/ai0:3" would use eight channels
+	const unsigned int numberOfChannels = 8;
+	//const double bitResolutionOf9223 = 16.0;  // Double to ensure floating point arithmetic
+	//const double rangeOf9223Voltages = 21.2;  // Actual range of typical values read on NI 9223
+	const char *physicalChannelNames = "cDAQ1Mod1/ai0:3, cDAQ1Mod2/ai0:3";  // "cDAQ1Mod1/ai0:3, cDAQ1Mod2/ai0:3" would use eight channels
 	const char *taskName = "myTask";
 	const char *channelName = "testChannel";
-	const int expectedLowValue = -10;
-	const int expectedHighValue = 10;
-	const double sampleRate = 10000;  // Sample rate in Hz per channel (NI-9223 has max sampling rate of 1 MHz)
-	const unsigned int numberOfSecondsToRead = 15;
+	const int expectedLowValue = -2;
+	const int expectedHighValue = 2;
+	const double sampleRate = 500000;  // Sample rate in Hz per channel (NI-9223 has max sampling rate of 1 MHz)
+	const unsigned int numberOfSecondsToRead = 30;
 	const unsigned int sampsPerChanToRead = sampleRate * numberOfSecondsToRead;
 	// 1GB of memory is close to the max amount you can have before the system claims you've used too much memory
 	const unsigned int sizeOfReadArray = numberOfChannels * sampsPerChanToRead;
 	const int sizeOfErrorString = 2048;
+	std::cout << "Number of bytes in data array: " << sizeOfReadArray * sizeof(int16_t) << std::endl;
 	int16_t *readArray = new int16[sizeOfReadArray];  // This will store our data (in unscaled binary resolution)
 	int sampsPerChanRead;
 	char errorString[sizeOfErrorString];
@@ -72,6 +73,7 @@ int main(void)
 		DAQmxClearTask(task);
 	}
 
+	clock_t beginWriteTime = clock();
 	// Write data out to file
 	for (unsigned int i = 0; i < numberOfChannels; ++i)
 	{
@@ -82,6 +84,9 @@ int main(void)
 		std::cout << "Writing: " << fileName << std::endl;
 		fp.writeToFile(fileName);
 	}
+	clock_t endWriteTime = clock();
+	double timeSpent = (double)(endWriteTime - beginWriteTime) / CLOCKS_PER_SEC;
+	std::cout << "Time to write files in seconds: " << timeSpent << std::endl;
 
 	std::cout << "\n" << sampsPerChanRead << " samples per channel read" << std::endl;
 	delete readArray;

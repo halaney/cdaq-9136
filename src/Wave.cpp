@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <stdint.h>
 #include <string>
 #include "./Wave.h"
@@ -7,9 +8,9 @@
 
 // Helper function to write numbers in binary to file
 template <typename T>
-void writeNumberBinary(std::fstream &fp, const T number)
+void writeNumberBinary(std::fstream &fp, const T number, int numberOfElements=1)
 {
-	fp.write(reinterpret_cast<const char *>(&number), sizeof(T));
+	fp.write(reinterpret_cast<const char *>(&number), numberOfElements * sizeof(T));
 }
 
 
@@ -75,9 +76,20 @@ void WaveFile::writeToFile(std::string fileName)
 	// Write data chunk
 	writeCharArrayWithoutANull(fp, dataSubChunkId, 4);
 	writeNumberBinary<uint32_t>(fp, dataSubChunkSize);
-	for (unsigned int i = 0; i < numberOfDataElements; ++i)
+	int writeSize = 0;
+	int elementsLeft = numberOfDataElements;
+	while(elementsLeft)
 	{
-		writeNumberBinary<int16_t>(fp, *(data + i));
+		if (elementsLeft >= std::numeric_limits<std::streamsize>::max())
+		{
+			writeSize = std::numeric_limits<std::streamsize>::max();
+		}
+		else
+		{
+			writeSize = elementsLeft;
+		}
+		writeNumberBinary<int16_t>(fp, *(data), writeSize);
+		elementsLeft -= writeSize;
 	}
 
 	// Check size of file and compare to chunkSize for sanity
