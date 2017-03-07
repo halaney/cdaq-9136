@@ -23,16 +23,16 @@ int main(void)
 {
 	// Create necessary variables
 	TaskHandle task;
-	const unsigned int numberOfChannels = 1;
+	const unsigned int numberOfChannels = 8;
 	const double bitResolutionOf9223 = 16.0;  // Double to ensure floating point arithmetic
 	const double rangeOf9223Voltages = 21.2;  // Actual range of typical values read on NI 9223
-	const char *physicalChannelNames = "cDAQ1Mod1/ai0";  // "cDAQ1Mod1/ai0:3, cDAQ1Mod2/ai0:3" would use eight channels
+	const char *physicalChannelNames = "cDAQ1Mod1/ai0:3, cDAQ1Mod2/ai0:3";  // "cDAQ1Mod1/ai0:3, cDAQ1Mod2/ai0:3" would use eight channels
 	const char *taskName = "myTask";
 	const char *channelName = "testChannel";
 	const int expectedLowValue = -10;
 	const int expectedHighValue = 10;
-	const double sampleRate = 10000;  // Sample rate in Hz per channel (NI-9223 has max sampling rate of 1 MHz)
-	const unsigned int numberOfSecondsToRead = 15;
+	const double sampleRate = 500000;  // Sample rate in Hz per channel (NI-9223 has max sampling rate of 1 MHz)
+	const unsigned int numberOfSecondsToRead = 30;
 	const unsigned int sampsPerChanToRead = sampleRate * numberOfSecondsToRead;
 	// 1GB of memory is close to the max amount you can have before the system claims you've used too much memory
 	const unsigned int sizeOfReadArray = numberOfChannels * sampsPerChanToRead;
