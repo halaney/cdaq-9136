@@ -2,22 +2,23 @@
 #include <iostream>
 #include <limits>
 #include <stdint.h>
+#include <stdio.h>
 #include <string>
 #include "./Wave.h"
 
 
 // Helper function to write numbers in binary to file
 template <typename T>
-void writeNumberBinary(std::fstream &fp, const T number, int numberOfElements=1)
+void writeNumberBinary(FILE *fp, T number, int numberOfElements=1)
 {
-	fp.write(reinterpret_cast<const char *>(&number), numberOfElements * sizeof(T));
+	fwrite(&number, sizeof(T), numberOfElements, fp);
 }
 
 
 // Helper function to write character array that has no null character
-void writeCharArrayWithoutANull(std::fstream &fp, const char *array, const unsigned int sizeOfArray)
+void writeCharArrayWithoutANull(FILE *fp, const char *array, const unsigned int sizeOfArray)
 {
-	fp.write(array, sizeOfArray);
+	fwrite(array, sizeof(char), sizeOfArray, fp);
 }
 
 
@@ -55,8 +56,7 @@ WaveFile::WaveFile(const int16_t * const data, unsigned int numberOfDataElements
 
 void WaveFile::writeToFile(std::string fileName)
 {
-	std::fstream fp;
-	fp.open(fileName.c_str(), std::ios::binary | std::fstream::out);
+	FILE *fp = fopen(fileName.c_str(), "wb");
 
 	// Write top level header
 	writeCharArrayWithoutANull(fp, chunkId, 4);
@@ -76,30 +76,20 @@ void WaveFile::writeToFile(std::string fileName)
 	// Write data chunk
 	writeCharArrayWithoutANull(fp, dataSubChunkId, 4);
 	writeNumberBinary<uint32_t>(fp, dataSubChunkSize);
-	int writeSize = 0;
-	int elementsLeft = numberOfDataElements;
-	while(elementsLeft)
+	std::size_t written = fwrite(data, sizeof(*data), numberOfDataElements, fp);
+	if (written != numberOfDataElements)
 	{
-		if (elementsLeft >= std::numeric_limits<std::streamsize>::max())
-		{
-			writeSize = std::numeric_limits<std::streamsize>::max();
-		}
-		else
-		{
-			writeSize = elementsLeft;
-		}
-		writeNumberBinary<int16_t>(fp, *(data), writeSize);
-		elementsLeft -= writeSize;
+		std::cout << "Did not write all of the data" << std::endl;
 	}
 
 	// Check size of file and compare to chunkSize for sanity
-	fp.flush();  // Try to ensure the stream has been updated
-	unsigned int endPosition = fp.tellp();
+	fflush(fp);  // Try to ensure the stream has been updated
+	unsigned int endPosition = ftell(fp);
 	if (chunkSize != (endPosition - 8))
 	{
 		std::cout << "The wav file's written chunkSize is: " << chunkSize
 				  << "\nBut the file pointer claims it should be: " << endPosition - 8 << std::endl;
 	}
 
-	fp.close();
+	fclose(fp);
 }
