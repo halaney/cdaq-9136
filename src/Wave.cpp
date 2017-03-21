@@ -7,23 +7,20 @@
 #include "./Wave.h"
 
 
-// Helper function to write numbers in binary to file
+// Helper function to write data in binary to file
 template <typename T>
-void writeNumberBinary(FILE *fp, T number, int numberOfElements=1)
+std::size_t writeDataBinary(FILE *fp, const T *data, unsigned int numberOfElements=1)
 {
-	fwrite(&number, sizeof(T), numberOfElements, fp);
-}
-
-
-// Helper function to write character array that has no null character
-void writeCharArrayWithoutANull(FILE *fp, const char *array, const unsigned int sizeOfArray)
-{
-	fwrite(array, sizeof(char), sizeOfArray, fp);
+	return fwrite(data, sizeof(T), numberOfElements, fp);
 }
 
 
 WaveFile::WaveFile(const int16_t * const data, unsigned int numberOfDataElements, uint32_t sampsPerSecond)
-				: sampsPerSecond(sampsPerSecond)
+				: fmtSubChunkSize(16)
+				, fmtTag(1)
+				, channels(1)
+				, sampsPerSecond(sampsPerSecond)
+				, bitsPerSamp(sizeof(int16_t) * 8)
 				, data(data)
 				, numberOfDataElements(numberOfDataElements)
 {
@@ -44,7 +41,6 @@ WaveFile::WaveFile(const int16_t * const data, unsigned int numberOfDataElements
 	dataSubChunkId[2] = 't';
 	dataSubChunkId[3] = 'a';
 
-
 	avgBytesPerSecond = (bitsPerSamp / 8) * sampsPerSecond;
 	blockAlign = channels * (bitsPerSamp / 8);
 	dataSubChunkSize = (bitsPerSamp / 8) * numberOfDataElements;
@@ -56,34 +52,35 @@ WaveFile::WaveFile(const int16_t * const data, unsigned int numberOfDataElements
 
 void WaveFile::writeToFile(std::string fileName)
 {
+	// Using c-style file I/O because c++ style did not like writing large blocks of a data
 	FILE *fp = fopen(fileName.c_str(), "wb");
 
 	// Write top level header
-	writeCharArrayWithoutANull(fp, chunkId, 4);
-	writeNumberBinary<uint32_t>(fp, chunkSize);
-	writeCharArrayWithoutANull(fp, format, 4);
+	writeDataBinary<char>(fp, chunkId, 4);
+	writeDataBinary<uint32_t>(fp, &chunkSize);
+	writeDataBinary<char>(fp, format, 4);
 
 	// Write format chunk
-	writeCharArrayWithoutANull(fp, fmtSubChunkId, 4);
-	writeNumberBinary<uint32_t>(fp, fmtSubChunkSize);
-	writeNumberBinary<uint16_t>(fp, fmtTag);
-	writeNumberBinary<uint16_t>(fp, channels);
-	writeNumberBinary<uint32_t>(fp, sampsPerSecond);
-	writeNumberBinary<uint32_t>(fp, avgBytesPerSecond);
-	writeNumberBinary<uint16_t>(fp, blockAlign);
-	writeNumberBinary<uint16_t>(fp, bitsPerSamp);
+	writeDataBinary<char>(fp, fmtSubChunkId, 4);
+	writeDataBinary<uint32_t>(fp, &fmtSubChunkSize);
+	writeDataBinary<uint16_t>(fp, &fmtTag);
+	writeDataBinary<uint16_t>(fp, &channels);
+	writeDataBinary<uint32_t>(fp, &sampsPerSecond);
+	writeDataBinary<uint32_t>(fp, &avgBytesPerSecond);
+	writeDataBinary<uint16_t>(fp, &blockAlign);
+	writeDataBinary<uint16_t>(fp, &bitsPerSamp);
 
 	// Write data chunk
-	writeCharArrayWithoutANull(fp, dataSubChunkId, 4);
-	writeNumberBinary<uint32_t>(fp, dataSubChunkSize);
-	std::size_t written = fwrite(data, sizeof(*data), numberOfDataElements, fp);
+	writeDataBinary<char>(fp, dataSubChunkId, 4);
+	writeDataBinary<uint32_t>(fp, &dataSubChunkSize);
+	std::size_t written = writeDataBinary<int16_t>(fp, data, numberOfDataElements);
 	if (written != numberOfDataElements)
 	{
 		std::cout << "Did not write all of the data" << std::endl;
 	}
 
 	// Check size of file and compare to chunkSize for sanity
-	fflush(fp);  // Try to ensure the stream has been updated
+	fflush(fp);
 	unsigned int endPosition = ftell(fp);
 	if (chunkSize != (endPosition - 8))
 	{

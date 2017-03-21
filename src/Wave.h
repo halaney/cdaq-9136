@@ -30,13 +30,13 @@ private:
 
 	/* Format subchunk */
 	char fmtSubChunkId[4];  // Names subchunk ID "fmt "
-	static const uint32_t fmtSubChunkSize = 16;  // Size in bytes of this chunk
-	static const uint16_t fmtTag = 1;  // Specifies PCM wav filetype
-	static const uint16_t channels = 1;  // Mono channel wav file
+	const uint32_t fmtSubChunkSize;  // Size in bytes of this chunk
+	const uint16_t fmtTag;  // Specifies PCM wav filetype
+	const uint16_t channels;  // Mono channel wav file
 	uint32_t sampsPerSecond;  // Sampling rate
 	uint32_t avgBytesPerSecond;  // Bytes per second
 	uint16_t blockAlign;  // Bytes in a sound block (i.e. channels * bitsPerSamp / 8)
-	static const uint16_t bitsPerSamp = sizeof(int16_t) * 8;
+	const uint16_t bitsPerSamp;
 
 	/* Data subchunk */
 	char dataSubChunkId[4];  // Names subchunk ID "data"
