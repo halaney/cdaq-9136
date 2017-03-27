@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <time.h>
 
+#include "./ConfigReader.h"
 #include "./Wave.h"
 
 
@@ -28,18 +29,33 @@ int main(void)
 	//const double rangeOf9223Voltages = 21.2;  // Actual range of typical values read on NI 9223
 	const char *physicalChannelNames = "cDAQ1Mod1/ai0:3, cDAQ1Mod2/ai0:3";  // "cDAQ1Mod1/ai0:3, cDAQ1Mod2/ai0:3" would use eight channels
 	const char *taskName = "myTask";
-	const int expectedLowValue = -2;
-	const int expectedHighValue = 2;
-	const double sampleRate = 500000;  // Sample rate in Hz per channel (NI-9223 has max sampling rate of 1 MHz)
-	const unsigned int numberOfSecondsToRead = 60;
-	const unsigned int sampsPerChanToRead = sampleRate * numberOfSecondsToRead;
-	// 1GB of memory is close to the max amount you can have before the system claims you've used too much memory
-	const unsigned int sizeOfReadArray = numberOfChannels * sampsPerChanToRead;
 	const int sizeOfErrorString = 2048;
+	char errorString[sizeOfErrorString];
+	int sampsPerChanRead;
+
+	// Read configuration file
+	ConfigReader reader("/home/admin/SensorReader/config/config.conf");
+	const int expectedLowValue = reader.getExpectedLowValue();
+	const int expectedHighValue = reader.getExpectedHighValue();
+	const unsigned int sampleRate = reader.getSampleRate();  // Sample rate in Hz per channel (NI-9223 has max sampling rate of 1 MHz)
+	const unsigned int numberOfSecondsToRead = reader.getTimeToRead();
+	const unsigned int startTime = reader.getStartTime();
+	const unsigned int sampsPerChanToRead = sampleRate * numberOfSecondsToRead;
+	const unsigned int sizeOfReadArray = numberOfChannels * sampsPerChanToRead;
+
+	// TODO: Delete these debug print statements
+	std::cout << "Start time: " << startTime << std::endl;
+	std::cout << "Sample Rate: " << sampleRate << std::endl;
+	std::cout << "Time to read: " << numberOfSecondsToRead << std::endl;
+	std::cout << "Low value: " << expectedLowValue << std::endl;
+	std::cout << "High Value: " << expectedHighValue << std::endl;
+
+	// TODO: Wait till it is close to time to read
+	// This way we aren't holding resources and creating tasks without properly closing them
+	// if the system daemon is restarted
+	// 1GB of memory is close to the max amount you can have before the system claims you've used too much memory
 	std::cout << "Number of bytes in data array: " << sizeOfReadArray * sizeof(int16_t) << std::endl;
 	int16_t *readArray = new int16[sizeOfReadArray];  // This will store our data (in unscaled binary resolution)
-	int sampsPerChanRead;
-	char errorString[sizeOfErrorString];
 
 	// Create a "task" for this data acquisition
 	DAQmxErrorCheck(DAQmxCreateTask(taskName, &task), errorString, sizeOfErrorString);
@@ -50,11 +66,10 @@ int main(void)
 	// Configure timing parameters for reading
 	DAQmxErrorCheck(DAQmxCfgSampClkTiming(task, NULL, sampleRate, DAQmx_Val_Rising, DAQmx_Val_FiniteSamps, sampsPerChanToRead), errorString, sizeOfErrorString);
 
-
-
 	// Kick off the task
 	DAQmxErrorCheck(DAQmxStartTask(task), errorString, sizeOfErrorString);
 
+	// TODO: Wait till actual time to read
 	// Get the time for the filename and read the data
 	time_t rawtime;
 	struct tm *timeinfo;
@@ -66,14 +81,14 @@ int main(void)
 	DAQmxErrorCheck(DAQmxReadBinaryI16(task, -1, DAQmx_Val_WaitInfinitely, DAQmx_Val_GroupByChannel, readArray, sizeOfReadArray, &sampsPerChanRead, NULL), errorString, sizeOfErrorString);
 
 	// Clear the task out if it exists
-	if(task != 0)
+	if (task != NULL)
 	{
 		DAQmxStopTask(task);
 		DAQmxClearTask(task);
 	}
 
-	clock_t beginWriteTime = clock();
 	// Write data out to file
+	clock_t beginWriteTime = clock();
 	for (unsigned int i = 0; i < numberOfChannels; ++i)
 	{
 		std::stringstream ss;

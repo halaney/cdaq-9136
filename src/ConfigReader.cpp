@@ -61,6 +61,7 @@ void ConfigReader::read()
 
 		line.erase();
 		subString.erase();
+		std::getline(fp, line);
 	}
 
 	fp.close();
