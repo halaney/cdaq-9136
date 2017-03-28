@@ -4,6 +4,7 @@
 #include <sstream>
 #include <stdint.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "./ConfigReader.h"
 #include "./Wave.h"
@@ -34,7 +35,7 @@ int main(void)
 	int sampsPerChanRead;
 
 	// Read configuration file
-	ConfigReader reader("/home/admin/SensorReader/config/config.conf");
+	ConfigReader reader("/home/admin/SensorReader/config/config.ini");
 	const int expectedLowValue = reader.getExpectedLowValue();
 	const int expectedHighValue = reader.getExpectedHighValue();
 	const unsigned int sampleRate = reader.getSampleRate();  // Sample rate in Hz per channel (NI-9223 has max sampling rate of 1 MHz)
@@ -50,35 +51,48 @@ int main(void)
 	std::cout << "Low value: " << expectedLowValue << std::endl;
 	std::cout << "High Value: " << expectedHighValue << std::endl;
 
-	// TODO: Wait till it is close to time to read
-	// This way we aren't holding resources and creating tasks without properly closing them
-	// if the system daemon is restarted
-	// 1GB of memory is close to the max amount you can have before the system claims you've used too much memory
+	// Wait till it is 5 seconds before startTime
+	// This way we aren't holding resources and creating tasks without properly closing them if the daemon is restarted
+	time_t rawTime;
+	time(&rawTime);
+	if ((startTime - rawTime - 5) > 0)
+	{
+		sleep(startTime - rawTime - 5);
+	}
 	std::cout << "Number of bytes in data array: " << sizeOfReadArray * sizeof(int16_t) << std::endl;
+	// 1GB of memory is close to the max amount you can have before the system claims you've used too much memory
 	int16_t *readArray = new int16[sizeOfReadArray];  // This will store our data (in unscaled binary resolution)
 
 	// Create a "task" for this data acquisition
 	DAQmxErrorCheck(DAQmxCreateTask(taskName, &task), errorString, sizeOfErrorString);
 
 	// Create and add virtual channels to the task to indicate where to read data from
-	DAQmxErrorCheck(DAQmxCreateAIVoltageChan(task, physicalChannelNames, "", DAQmx_Val_Diff, expectedLowValue, expectedHighValue, DAQmx_Val_Volts, NULL), errorString, sizeOfErrorString);
+	DAQmxErrorCheck(DAQmxCreateAIVoltageChan(task, physicalChannelNames, "", DAQmx_Val_Diff,
+			expectedLowValue, expectedHighValue, DAQmx_Val_Volts, NULL), errorString, sizeOfErrorString);
 
 	// Configure timing parameters for reading
-	DAQmxErrorCheck(DAQmxCfgSampClkTiming(task, NULL, sampleRate, DAQmx_Val_Rising, DAQmx_Val_FiniteSamps, sampsPerChanToRead), errorString, sizeOfErrorString);
+	DAQmxErrorCheck(DAQmxCfgSampClkTiming(task, NULL, sampleRate, DAQmx_Val_Rising,
+			DAQmx_Val_FiniteSamps, sampsPerChanToRead), errorString, sizeOfErrorString);
 
 	// Kick off the task
 	DAQmxErrorCheck(DAQmxStartTask(task), errorString, sizeOfErrorString);
 
-	// TODO: Wait till actual time to read
+	// Wait till actual time to read
+	time(&rawTime);
+	if (startTime- rawTime > 0)
+	{
+		sleep(startTime - rawTime);
+	}
 	// Get the time for the filename and read the data
-	time_t rawtime;
 	struct tm *timeinfo;
 	char fileNameBuffer[200];
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
+	time(&rawTime);
+	timeinfo = localtime(&rawTime);
 	strftime(fileNameBuffer, 100,
 			"/home/admin/SensorReader/output/%m-%d-%Y_%H_%M_%S", timeinfo);
-	DAQmxErrorCheck(DAQmxReadBinaryI16(task, -1, DAQmx_Val_WaitInfinitely, DAQmx_Val_GroupByChannel, readArray, sizeOfReadArray, &sampsPerChanRead, NULL), errorString, sizeOfErrorString);
+	// Perform the read
+	DAQmxErrorCheck(DAQmxReadBinaryI16(task, -1, DAQmx_Val_WaitInfinitely, DAQmx_Val_GroupByChannel,
+			readArray, sizeOfReadArray, &sampsPerChanRead, NULL), errorString, sizeOfErrorString);
 
 	// Clear the task out if it exists
 	if (task != NULL)
