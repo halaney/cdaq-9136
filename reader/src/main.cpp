@@ -26,8 +26,6 @@ int main(void)
 	// Create necessary variables
 	TaskHandle task;
 	const unsigned int numberOfChannels = 8;
-	//const double bitResolutionOf9223 = 16.0;  // Double to ensure floating point arithmetic
-	//const double rangeOf9223Voltages = 21.2;  // Actual range of typical values read on NI 9223
 	const char *physicalChannelNames = "cDAQ1Mod1/ai0:3, cDAQ1Mod2/ai0:3";  // "cDAQ1Mod1/ai0:3, cDAQ1Mod2/ai0:3" would use eight channels
 	const char *taskName = "myTask";
 	const int sizeOfErrorString = 2048;
@@ -43,13 +41,7 @@ int main(void)
 	const unsigned int startTime = reader.getStartTime();
 	const unsigned int sampsPerChanToRead = sampleRate * numberOfSecondsToRead;
 	const unsigned int sizeOfReadArray = numberOfChannels * sampsPerChanToRead;
-
-	// TODO: Delete these debug print statements
-	std::cout << "Start time: " << startTime << std::endl;
-	std::cout << "Sample Rate: " << sampleRate << std::endl;
-	std::cout << "Time to read: " << numberOfSecondsToRead << std::endl;
-	std::cout << "Low value: " << expectedLowValue << std::endl;
-	std::cout << "High Value: " << expectedHighValue << std::endl;
+	reader.display();
 
 	// Wait till it is 5 seconds before startTime
 	// This way we aren't holding resources and creating tasks without properly closing them if the daemon is restarted
@@ -58,6 +50,11 @@ int main(void)
 	if ((startTime - rawTime - 5) > 0)
 	{
 		sleep(startTime - rawTime - 5);
+	}
+	else if (rawTime > startTime + 3600)  // If it's way passed start time don't bother
+	{
+		std::cout << "startTime was over an hour ago... aborting" << std::endl;
+		return 0;
 	}
 	std::cout << "Number of bytes in data array: " << sizeOfReadArray * sizeof(int16_t) << std::endl;
 	// 1GB of memory is close to the max amount you can have before the system claims you've used too much memory
@@ -79,10 +76,11 @@ int main(void)
 
 	// Wait till actual time to read
 	time(&rawTime);
-	if (startTime- rawTime > 0)
+	if (startTime - rawTime > 0)
 	{
 		sleep(startTime - rawTime);
 	}
+
 	// Get the time for the filename and read the data
 	struct tm *timeinfo;
 	char fileNameBuffer[200];

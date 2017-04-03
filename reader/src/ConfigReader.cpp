@@ -1,7 +1,9 @@
 #include <fstream>
+#include <iostream>
 #include <stdlib.h>
 #include <string.h>
 #include <string>
+#include <time.h>
 #include "./ConfigReader.h"
 
 /* Example configuration file layout
@@ -71,6 +73,22 @@ void ConfigReader::read()
 void ConfigReader::reRead()
 {
 	read();
+}
+
+
+void ConfigReader::display()
+{
+	time_t rawStartTime = startTime;
+	struct tm *localTime = localtime(&rawStartTime);
+
+	std::cout << "\n   Current Configuration Settings    " << std::endl;
+	std::cout <<    "------------------------------------" << std::endl;
+	std::cout << "Start time (unix time): " << startTime << std::endl;
+	std::cout << "Start time (cDAQ-9136 local time): " << asctime(localTime);
+	std::cout << "Sample Rate (Hz): " << sampleRate << std::endl;
+	std::cout << "Time to read (seconds): " << timeToRead << std::endl;
+	std::cout << "Expected low value (V): " << expectedLowValue << std::endl;
+	std::cout << "Expected high value (V): " << expectedHighValue << "\n" << std::endl;
 }
 
 

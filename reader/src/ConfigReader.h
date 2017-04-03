@@ -8,6 +8,7 @@ class ConfigReader
 public:
 	ConfigReader(const std::string configFile);  // Reads config upon construction
 	void reRead();  // Reread the config file
+	void display();  // Displays current parameters
 	unsigned int getStartTime() const;  // Gets the time to start reading from the sensor
 	int getExpectedLowValue() const;  // Gets the expected lowest value the sensor should see
 	int getExpectedHighValue() const;  // Gets the expected highest value sensor should see
