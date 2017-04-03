@@ -35,7 +35,7 @@ int main(void)
 	int sampsPerChanRead;
 
 	// Read configuration file
-	ConfigReader reader("/home/admin/SensorReader/config/config.ini");
+	ConfigReader reader("/home/admin/reader/config/config.ini");
 	const int expectedLowValue = reader.getExpectedLowValue();
 	const int expectedHighValue = reader.getExpectedHighValue();
 	const unsigned int sampleRate = reader.getSampleRate();  // Sample rate in Hz per channel (NI-9223 has max sampling rate of 1 MHz)
@@ -89,7 +89,7 @@ int main(void)
 	time(&rawTime);
 	timeinfo = localtime(&rawTime);
 	strftime(fileNameBuffer, 100,
-			"/home/admin/SensorReader/output/%m-%d-%Y_%H_%M_%S", timeinfo);
+			"/home/admin/reader/output/%m-%d-%Y_%H_%M_%S", timeinfo);
 	// Perform the read
 	DAQmxErrorCheck(DAQmxReadBinaryI16(task, -1, DAQmx_Val_WaitInfinitely, DAQmx_Val_GroupByChannel,
 			readArray, sizeOfReadArray, &sampsPerChanRead, NULL), errorString, sizeOfErrorString);
