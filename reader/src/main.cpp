@@ -6,7 +6,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "./ConfigReader.h"
+#include "../../shared/ConfigReader.h"
 #include "./Wave.h"
 
 

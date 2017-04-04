@@ -2,7 +2,7 @@
 #include <string>
 #include <time.h>
 
-#include "../../reader/src/ConfigReader.h"
+#include "../../shared/ConfigReader.h"
 #include "./ConfigWriter.h"
 
 
