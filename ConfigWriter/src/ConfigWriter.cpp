@@ -36,7 +36,7 @@ void ConfigWriter::write()
 	fp << "lowValue=" << expectedLowValue << "\n";
 	fp << "highValue=" << expectedHighValue << "\n";
 	fp << "sampleRate=" << sampleRate << "\n";
-	fp << "timeToRead=" << timeToRead;
+	fp << "timeToRead=" << timeToRead << "\n";
 
 	fp.close();
 }

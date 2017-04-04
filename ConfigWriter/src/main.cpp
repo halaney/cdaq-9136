@@ -33,13 +33,17 @@ int main(void)
 	std::cin >> expectedHighValue;
 	std::cout << "Enter the sampling rate... be wary of memory usage (Hz): ";
 	std::cin >> sampleRate;
-	std::cout << "Enter the time to read... be wary of memory usage (Hz): ";
+	std::cout << "Enter the time to read... be wary of memory usage (s): ";
 	std::cin >> timeToRead;
 
 	// Write the parameters
 	ConfigWriter writer(configFile, startTime, expectedLowValue, expectedHighValue,
 			sampleRate, timeToRead);
 	writer.write();
+
+	// Redisplay new parameters
+	reader.reRead();
+	reader.display();
 
 	return 0;
 }
