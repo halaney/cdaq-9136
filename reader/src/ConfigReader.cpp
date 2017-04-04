@@ -4,12 +4,13 @@
 #include <string.h>
 #include <string>
 #include <time.h>
+
 #include "./ConfigReader.h"
 
 /* Example configuration file layout
  * startTime=100
- * lowValue=-10
- * highValue=10
+ * lowValue=-10.0
+ * highValue=10.0
  * sampleRate=500000
  * timeToRead=30
  */
@@ -39,12 +40,12 @@ void ConfigReader::read()
 		else if (line.find("lowValue=") != std::string::npos)
 		{
 			subString = line.substr(line.find("lowValue=") + strlen("lowValue="));
-			expectedLowValue = atoi(subString.c_str());
+			expectedLowValue = atof(subString.c_str());
 		}
 		else if (line.find("highValue=") != std::string::npos)
 		{
 			subString = line.substr(line.find("highValue=") + strlen("highValue="));
-			expectedHighValue = atoi(subString.c_str());
+			expectedHighValue = atof(subString.c_str());
 		}
 		else if (line.find("sampleRate=") != std::string::npos)
 		{
@@ -81,8 +82,8 @@ void ConfigReader::display()
 	time_t rawStartTime = startTime;
 	struct tm *localTime = localtime(&rawStartTime);
 
-	std::cout << "\n   Current Configuration Settings    " << std::endl;
-	std::cout <<    "------------------------------------" << std::endl;
+	std::cout << "\nCurrent Configuration Settings" << std::endl;
+	std::cout <<   "------------------------------" << std::endl;
 	std::cout << "Start time (unix time): " << startTime << std::endl;
 	std::cout << "Start time (cDAQ-9136 local time): " << asctime(localTime);
 	std::cout << "Sample Rate (Hz): " << sampleRate << std::endl;
@@ -98,12 +99,12 @@ unsigned int ConfigReader::getStartTime() const
 }
 
 
-int ConfigReader::getExpectedLowValue() const
+double ConfigReader::getExpectedLowValue() const
 {
 	return expectedLowValue;
 }
 
-int ConfigReader::getExpectedHighValue() const
+double ConfigReader::getExpectedHighValue() const
 {
 	return expectedHighValue;
 }

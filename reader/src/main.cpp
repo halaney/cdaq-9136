@@ -34,8 +34,8 @@ int main(void)
 
 	// Read configuration file
 	ConfigReader reader("/home/admin/reader/config/config.ini");
-	const int expectedLowValue = reader.getExpectedLowValue();
-	const int expectedHighValue = reader.getExpectedHighValue();
+	const double expectedLowValue = reader.getExpectedLowValue();
+	const double expectedHighValue = reader.getExpectedHighValue();
 	const unsigned int sampleRate = reader.getSampleRate();  // Sample rate in Hz per channel (NI-9223 has max sampling rate of 1 MHz)
 	const unsigned int numberOfSecondsToRead = reader.getTimeToRead();
 	const unsigned int startTime = reader.getStartTime();
