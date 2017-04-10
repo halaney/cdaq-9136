@@ -51,9 +51,9 @@ int main(void)
 	{
 		sleep(startTime - rawTime - 5);
 	}
-	else if (rawTime > startTime + 3600)  // If it's way passed start time don't bother
+	else  // If passed start time don't bother
 	{
-		std::cout << "startTime was over an hour ago... aborting" << std::endl;
+		std::cout << "startTime has already passed" << std::endl;
 		return 0;
 	}
 	std::cout << "Number of bytes in data array: " << sizeOfReadArray * sizeof(int16_t) << std::endl;
