@@ -25,7 +25,6 @@ ConfigReader::ConfigReader(const std::string fileName)
 
 void ConfigReader::read()
 {
-	std::string line;
 	std::string subString;
 	std::ifstream fp(configFile.c_str());
 
@@ -63,10 +62,7 @@ void ConfigReader::read()
 
 		line.erase();
 		subString.erase();
-		std::getline(fp, line);
 	}
-
-	fp.close();
 }
 
 
