@@ -29,8 +29,7 @@ void ConfigReader::read()
 	std::string subString;
 	std::ifstream fp(configFile.c_str());
 
-	std::getline(fp, line);
-	while (!fp.eof())
+	for (std::string line; std::getline(fp, line); )
 	{
 		if (line.find("startTime=") != std::string::npos)
 		{
