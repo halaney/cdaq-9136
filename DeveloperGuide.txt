@@ -1,0 +1,42 @@
+Useful Links
+--------------------
+https://forums.ni.com/t5/NI-Linux-Real-Time-Documents/Example-Using-the-DAQmx-API-on-NI-Linux-Real-Time-Systems/ta-p/3536811
+http://www.ni.com/product-documentation/2835/en/
+http://zone.ni.com/reference/en-XX/help/370471AA-01/
+http://forums.ni.com/t5/NI-Linux-Real-Time-Documents/Tutorial-Installing-Startup-Scripts-on-NI-Linux-Real-Time/ta-p/3527257
+
+
+
+General information
+----------------------
+  - This project is basically two programs, ConfigWriter and reader, and
+    an init script
+  - ConfigWriter edits the configuration used by reader
+  - reader uses the user configuration to set recording parameters
+    and then records using the nidaqmx api
+  - reader is ran as a init script located at /etc/init.d/reader
+  - To reload the configuration for reader you need to relaunch the program
+    either by power cycling the cDAQ-9136 or restarting/stopping and starting
+    the init process using /etc/init.d/reader start/stop/restart
+  - The folder structure for the cDAQ-9136 is hard-coded, so if you reinstall
+    everything be sure to place it like so
+
+    |-- /
+        |-- etc
+            |-- init.d
+                |-- reader
+        |-- home
+            |-- admin
+                |-- ConfigWriter
+                    |-- ConfigWriter
+                |-- reader
+                    |-- reader
+                    |-- config
+                        |-- config.ini
+                    |-- output
+
+  - Also if you reinstalled be sure to install the FTP server and SSH server
+    on the cDAQ-9136 using NI MAX. Also set the server time using NI MAX. It
+    would be more accurate to connect the cDAQ-9136 to the internet and download
+    a NTP client using the built-in package manager instead of manually setting
+    the time.
