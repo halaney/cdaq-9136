@@ -1,5 +1,6 @@
 #!/bin/bash
-
+# Added using command /usr/sbin/update-rc.d -f ReaderInit defaults 99 0
+# Had to use 99 and 0 to start the process later... Wasn't working without it
 NAME="InputReader"
 DAEMON=/home/admin/reader/reader
 USER=admin
