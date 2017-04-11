@@ -1,10 +1,10 @@
 #!/bin/bash
-# Added using command /usr/sbin/update-rc.d -f ReaderInit defaults 99 0
+# Added using command /usr/sbin/update-rc.d -f reader defaults 99 0
 # Had to use 99 and 0 to start the process later... Wasn't working without it
-NAME="InputReader"
+NAME="reader"
 DAEMON=/home/admin/reader/reader
 USER=admin
-PIDFILE=/var/run/InputReader.pid
+PIDFILE=/var/run/reader.pid
 
 do_start() {
     /sbin/start-stop-daemon --start --pidfile $PIDFILE \
