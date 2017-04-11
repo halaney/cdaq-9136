@@ -5,7 +5,7 @@ cDAQ-9136 and NI-9223. The device will be running "headless" on a kayak. This is
 achieved through two separate programs, ConfigWriter and reader. ConfigWriter
 updates the config file used by reader. reader waits until the given start time
 and records data based on the config file. The reader program current runs as an
-init process (therefore starts a power-up).
+init process (therefore starts at power-up).
 
 
 Basic Usage
