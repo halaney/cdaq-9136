@@ -11,13 +11,18 @@ General information
 ----------------------
   - This project is basically two programs, ConfigWriter and reader, and
     an init script
+
   - ConfigWriter edits the configuration used by reader
+
   - reader uses the user configuration to set recording parameters
     and then records using the nidaqmx api
-  - reader is ran as a init script located at /etc/init.d/reader
+
+  - reader is ran as an init script located at /etc/init.d/reader
+
   - To reload the configuration for reader you need to relaunch the program
     either by power cycling the cDAQ-9136 or restarting/stopping and starting
     the init process using /etc/init.d/reader start/stop/restart
+
   - The folder structure for the cDAQ-9136 is hard-coded into reader
     and ConfigWriter, so if you reinstall everything be sure to place it like so
 

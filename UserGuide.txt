@@ -1,12 +1,17 @@
 Accessing the cDAQ-9136 command line
 ------------------------------------
   - An ssh program such as putty is needed
+
   - power-up the cDAQ-9136
+
   - Connect it to the PC you're using
+
   - launch NI MAX and find the cDAQ-9136 IP address
+
   - launch putty and enter the IP address, select the SSH bubble
     and click open (This can be saved and loaded using the saved sessions section
     allowing you to skip finding the IP address with NI Max in the future)
+
   - Login using the defaults. This is fine since the cDAQ-9136 isn't on the network
     and only those with physical access can access it
     default username: admin
@@ -20,23 +25,26 @@ Updating the configuration
 ---------------------------
   - The configuration the reader program uses can be updated using the
     ConfigWriter program
+
   - navigate to the program location:
       cd /home/admin/ConfigWriter
+
   - Launch the program and follow the on-screen directions
       ./ConfigWriter
     (Note: The ConfigWriter program has no error checks. If you enter
     a value that doesn't make sense it will accept it. This should be updated
     in the future. Be sure that the expected values are between -10 <= x <= 10.
     Also be sure the the sampling rate doesn't exceed 1 MHz. And finally consider
-    the memory usage. The cDAQ-9136 doesn't like giving more than 1 GB for the
-    reader program. Each sample is 2 bytes, and every time it samples it samples
-    all 8 channels. Try and keep
-    Memory = 8channels * 2bytes/chan sampleRateInHz * recordingTimeInSec <= 1 GB)
+    the memory usage. The cDAQ-9136 doesn't like allowing more than 1 GB of
+    memory for the reader program. Each sample is 2 bytes, and every time it
+    samples it samples all 8 channels. Try and keep
+    Memory = 8channels * 2bytes/chan * sampleRateInHz * recordingTimeInSec <= 1 GB)
+
   - Since the reader program runs on power-up it is using the old config. It will
     read the new config upon a power cycle. If you wish to reload the config
     with out power cycling use the command
       /etc/init.d/reader restart
-    or....
+    or...
       /etc/init.d/reader stop
       /etc/init.d/reader start
 
@@ -44,15 +52,24 @@ Updating the configuration
 Accessing the data
 -----------------------
   - The output .wav files are stored at /home/admin/reader/output/
+
   - I suggest using an SFTP client to download the files and remove them
+
   - Make sure the cDAQ-9136 is powered-up and connected to the PC or the network
+
   - Obtain the IP address in a similar fashion to when you connected to the cDAQ-9136
-  - Using filezilla enter the IP address under Host and the default username
-    and password under the Username and Password boxes. Then click Quickconnect
-  - The remote filesystem should be displayed under remote site, and your system under
-    local site
+
+  - Using Filezilla enter the IP address for Host and the default username
+    and password for the Username and Password. Then click Quickconnect
+
+  - The remote filesystem should be displayed under remote site,
+    and your system under local site
+
   - Navigate to /home/admin/reader/output/
-  - Navigate to where you want the files downloaded on your PC under local site
+
+  - Navigate to where you want the files downloaded to on your PC under local site
+
   - Right click the files you want to download and select download
+
   - When you are done with the files remove them from the cDAQ-9136 by
     right-clicking and selecting delete
