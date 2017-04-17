@@ -49,10 +49,10 @@ Accessing the data
   - Obtain the IP address in a similar fashion to when you connected to the cDAQ-9136
   - Using filezilla enter the IP address under Host and the default username
     and password under the Username and Password boxes. Then click Quickconnect
-  - The filesystem should be displayed under remote site, and your system under
+  - The remote filesystem should be displayed under remote site, and your system under
     local site
   - Navigate to /home/admin/reader/output/
   - Navigate to where you want the files downloaded on your PC under local site
-  - Right click the files you want to download and select downloading
+  - Right click the files you want to download and select download
   - When you are done with the files remove them from the cDAQ-9136 by
     right-clicking and selecting delete
