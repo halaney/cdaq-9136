@@ -18,8 +18,8 @@ General information
   - To reload the configuration for reader you need to relaunch the program
     either by power cycling the cDAQ-9136 or restarting/stopping and starting
     the init process using /etc/init.d/reader start/stop/restart
-  - The folder structure for the cDAQ-9136 is hard-coded, so if you reinstall
-    everything be sure to place it like so
+  - The folder structure for the cDAQ-9136 is hard-coded into reader
+    and ConfigWriter, so if you reinstall everything be sure to place it like so
 
     |-- /
         |-- etc

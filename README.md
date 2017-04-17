@@ -22,18 +22,21 @@ Below is an example of how to use the two programs
      /etc/init.d/reader stop
      /etc/init.d/reader start
      ```
-     This basically just stops and starts the reader program
+     This just stops and starts the reader program
  4. Once the reader program has recorded the data its output will be stored in
-    /home/admin/reader/output. It can be retrieved using a SFTP client such as
+    /home/admin/reader/output/. It can be retrieved using a SFTP client such as
     filezilla. Be sure to delete the files after retrieving them to free up space
+
 More details can be found in UserGuide.txt
 
 Project Setup for Development
 --------------------------
-To setup the project for development use the following link: https://forums.ni.com/t5/NI-Linux-Real-Time-Documents/Example-Using-the-DAQmx-API-on-NI-Linux-Real-Time-Systems/ta-p/3536811
+To setup the project for development use the following link:
+https://forums.ni.com/t5/NI-Linux-Real-Time-Documents/Example-Using-the-DAQmx-API-on-NI-Linux-Real-Time-Systems/ta-p/3536811
 
 Some other useful links:
 http://www.ni.com/product-documentation/2835/en/
 http://zone.ni.com/reference/en-XX/help/370471AA-01/
 http://forums.ni.com/t5/NI-Linux-Real-Time-Documents/Tutorial-Installing-Startup-Scripts-on-NI-Linux-Real-Time/ta-p/3527257
+
 Refer to the DeveloperGuide.txt for more information
