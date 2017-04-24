@@ -14,81 +14,139 @@
 // String must be of format YYYY:MM:DD:hh:mm:ss
 bool convertStringToUnixTime(std::string timeString, time_t &startTime)
 {
-	// Set up startTime temporary variables
-	std::stringstream timeStream(timeString);
-	std::string token;
-	std::vector<long int> startTimeVector;
-	struct tm startTimeStruct;
+    // Set up startTime temporary variables
+    std::stringstream timeStream(timeString);
+    std::string token;
+    std::vector<long int> startTimeVector;
+    struct tm startTimeStruct;
 
-	// Get individual time parameters
-	while (std::getline(timeStream, token, ':'))  // Get each field and convert to int
-	{
-		startTimeVector.push_back(atol(token.c_str()));
-	}
-	if (startTimeVector.size() != 6)
-	{
-		std::cout << "Incorrect date entry." << std::endl;
-		return false;
-	}
-	else
-	{
-		startTimeStruct.tm_year = startTimeVector[0] - 1900;  // Year since 1900
-		startTimeStruct.tm_mon = startTimeVector[1] - 1;  // Month (zero based)
-		startTimeStruct.tm_mday = startTimeVector[2];
-		startTimeStruct.tm_hour = startTimeVector[3];
-		startTimeStruct.tm_min = startTimeVector[4];
-		startTimeStruct.tm_sec = startTimeVector[5];
-		startTime = mktime(&startTimeStruct);
-		return true;
-	}
+    // Get individual time parameters
+    while (std::getline(timeStream, token, ':'))  // Get each field and convert to int
+    {
+        startTimeVector.push_back(atol(token.c_str()));
+    }
+    if (startTimeVector.size() != 6)
+    {
+        std::cout << "Incorrect date entry." << std::endl;
+        return false;
+    }
+    else
+    {
+        startTimeStruct.tm_year = startTimeVector[0] - 1900;  // Year since 1900
+        startTimeStruct.tm_mon = startTimeVector[1] - 1;  // Month (zero based)
+        startTimeStruct.tm_mday = startTimeVector[2];
+        startTimeStruct.tm_hour = startTimeVector[3];
+        startTimeStruct.tm_min = startTimeVector[4];
+        startTimeStruct.tm_sec = startTimeVector[5];
+        startTime = mktime(&startTimeStruct);
+        return true;
+    }
 }
 
 
 int main(void)
 {
-	const std::string configFile = "/home/admin/reader/config/config.ini";
-	ConfigReader reader(configFile);
-	std::string timeString;
-	time_t startTime;
-	double expectedLowValue;
-	double expectedHighValue;
-	unsigned int sampleRate;
-	unsigned int timeToRead;
+    const std::string configFile = "/home/admin/reader/config/config.ini";
+    ConfigReader reader(configFile);
+    time_t startTime;
+    double expectedLowValue;
+    double expectedHighValue;
+    unsigned int sampleRate;
+    unsigned int timeToRead;
+    std::string tempString;
+    std::string recordingId;
 
-	// Display title
-	std::cout << "\n\ncDAQ-9136 Input Configuration Editor" << std::endl;
-	std::cout <<     "------------------------------------" << std::endl;
-	std::cout << std::endl;
+    // Display title
+    std::cout << "\n\ncDAQ-9136 Input Configuration Editor" << std::endl;
+    std::cout <<     "------------------------------------" << std::endl;
 
-	// Display current config
-	reader.display();
+    // Display current config
+    reader.display();
 
-	std::cout << "Enter the start time (YYYY:MM:DD:hh:mm:ss): ";
-	std::cin >> timeString;
-	if (!convertStringToUnixTime(timeString, startTime))
-	{
-		std::cout << "Incorrect time entry." << std::endl;
-		return 1;
-	}
-	std::cout << "Enter the expected low value to be read (V): ";
-	std::cin >> expectedLowValue;
-	std::cout << "Enter the expected high value to be read (V): ";
-	std::cin >> expectedHighValue;
-	std::cout << "Enter the sampling rate... be wary of memory usage (Hz): ";
-	std::cin >> sampleRate;
-	std::cout << "Enter the time to read... be wary of memory usage (s): ";
-	std::cin >> timeToRead;
 
-	// Write the parameters
-	ConfigWriter writer(configFile, startTime, expectedLowValue, expectedHighValue,
-			sampleRate, timeToRead);
-	writer.write();
+    // Get new parameters, if user inputs enter use the old values
+    std::cout << "Press enter to keep the old value, otherwise input new value"
+              << std::endl;
+    std::cout << "Enter the recording ID: ";
+    std::getline(std::cin, tempString);
+    if (!tempString.empty())
+    {
+        recordingId = tempString;
+    }
+    else
+    {
+        recordingId = reader.getRecordingId();
+    }
 
-	// Redisplay new parameters
-	reader.reRead();
-	reader.display();
+    std::cout << "Enter the start time (YYYY:MM:DD:hh:mm:ss): ";
+    std::getline(std::cin, tempString);
+    if (!tempString.empty())
+    {
+        if (!convertStringToUnixTime(tempString, startTime))
+        {
+            std::cout << "Incorrect time entry." << std::endl;
+            return 1;
+        }
+    }
+    else
+    {
+        startTime = reader.getStartTime();
+    }
 
-	return 0;
+    std::cout << "Enter the expected low value to be read (V): ";
+    std::getline(std::cin, tempString);
+    if (!tempString.empty())
+    {
+        expectedLowValue = atof(tempString.c_str());
+    }
+    else
+    {
+        expectedLowValue = reader.getExpectedLowValue();
+    }
+
+    std::cout << "Enter the expected high value to be read (V): ";
+    std::getline(std::cin, tempString);
+    if (!tempString.empty())
+    {
+        expectedHighValue = atof(tempString.c_str());
+    }
+    else
+    {
+        expectedHighValue = reader.getExpectedHighValue();
+    }
+
+    std::cout << "Enter the sampling rate... be wary of memory usage (Hz): ";
+    std::getline(std::cin, tempString);
+    if (!tempString.empty())
+    {
+        sampleRate = atoi(tempString.c_str());
+    }
+    else
+    {
+        sampleRate = reader.getSampleRate();
+    }
+
+    std::cout << "Enter the time to read... be wary of memory usage (s): ";
+    std::getline(std::cin, tempString);
+    if (!tempString.empty())
+    {
+        timeToRead = atoi(tempString.c_str());
+    }
+    else
+    {
+        timeToRead = reader.getTimeToRead();
+    }
+
+
+    // Write the parameters
+    ConfigWriter writer(configFile, startTime, expectedLowValue, expectedHighValue,
+            sampleRate, timeToRead, recordingId);
+    writer.write();
+
+    // Redisplay new parameters
+    std::cout << "Displaying Updated Configuration...\n";
+    reader.reRead();
+    reader.display();
+
+    return 0;
 }
-
-
