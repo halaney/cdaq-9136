@@ -115,7 +115,7 @@ int main(void)
         expectedHighValue = reader.getExpectedHighValue();
     }
 
-    std::cout << "Enter the sampling rate... be wary of memory usage (Hz): ";
+    std::cout << "Enter the sampling rate (Can't exceed 1 MHz): ";
     std::getline(std::cin, tempString);
     if (!tempString.empty())
     {
@@ -126,7 +126,7 @@ int main(void)
         sampleRate = reader.getSampleRate();
     }
 
-    std::cout << "Enter the time to read... be wary of memory usage (s): ";
+    std::cout << "Enter the time to read (s): ";
     std::getline(std::cin, tempString);
     if (!tempString.empty())
     {
