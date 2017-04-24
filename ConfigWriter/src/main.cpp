@@ -65,8 +65,8 @@ int main(void)
 
 
     // Get new parameters, if user inputs enter use the old values
-    std::cout << "Press enter to keep the old value, otherwise input new value"
-              << std::endl;
+    std::cout << "Press enter to keep the old value, "
+              << "otherwise input the new value" << std::endl;
     std::cout << "Enter the recording ID: ";
     std::getline(std::cin, tempString);
     if (!tempString.empty())
@@ -115,7 +115,7 @@ int main(void)
         expectedHighValue = reader.getExpectedHighValue();
     }
 
-    std::cout << "Enter the sampling rate... be wary of memory usage (Hz): ";
+    std::cout << "Enter the sampling rate (Hz): ";
     std::getline(std::cin, tempString);
     if (!tempString.empty())
     {
@@ -126,7 +126,7 @@ int main(void)
         sampleRate = reader.getSampleRate();
     }
 
-    std::cout << "Enter the time to read... be wary of memory usage (s): ";
+    std::cout << "Enter the time to read (s): ";
     std::getline(std::cin, tempString);
     if (!tempString.empty())
     {
