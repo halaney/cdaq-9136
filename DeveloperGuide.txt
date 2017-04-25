@@ -23,6 +23,11 @@ General information
     either by power cycling the cDAQ-9136 or restarting/stopping and starting
     the init process using /etc/init.d/reader start/stop/restart
 
+  - To simplify commands for the user aliases are provided in a .profile file.
+    This allows the user to access /etc/init.d/reader with reader-daemon, to
+    access /home/admin/reader/reader with reader, and to access
+    /home/admin/ConfigWriter/ConfigWriter with ConfigWriter
+
   - The folder structure for the cDAQ-9136 is hard-coded into reader
     and ConfigWriter, so if you reinstall everything be sure to place it like so
 
@@ -32,12 +37,14 @@ General information
                 |-- reader
         |-- home
             |-- admin
+                |-- .profile
                 |-- ConfigWriter
                     |-- ConfigWriter
                 |-- reader
                     |-- reader
                     |-- config
                         |-- config.ini
+                        |-- quick-config.ini
                     |-- output
 
   - Also if you reinstalled be sure to install the FTP server and SSH server

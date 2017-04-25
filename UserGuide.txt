@@ -26,11 +26,8 @@ Updating the configuration
   - The configuration the reader program uses can be updated using the
     ConfigWriter program
 
-  - navigate to the program location:
-      cd /home/admin/ConfigWriter
-
   - Launch the program and follow the on-screen directions
-      ./ConfigWriter
+      ConfigWriter
     (Note: The ConfigWriter program has no error checks. If you enter
     a value that doesn't make sense it will accept it. This should be updated
     in the future. Be sure that the expected values are between -10 <= x <= 10.
@@ -39,10 +36,26 @@ Updating the configuration
   - Since the reader program runs on power-up it is using the old config. It will
     read the new config upon a power cycle. If you wish to reload the config
     with out power cycling use the command
-      /etc/init.d/reader restart
+      reader-daemon restart
     or...
-      /etc/init.d/reader stop
-      /etc/init.d/reader start
+      reader-daemon stop
+      reader-daemon start
+
+
+Using the "--quick" reader option
+-----------------------------------
+  - The "--quick" option uses non-configurable settings
+    (sampling rate = 500kHz, sample time = 300 seconds,
+    recording ID = RBW, start time is 2 minutes in the future)
+
+  - It is important to stop the reader-daemon first to ensure the reader program
+    is not running twice. Also do not reboot after starting with the "quick"
+    option or else the old configuration will be loaded instead of the "quick"
+    settings
+
+  - Here is an example of using the "--quick" option
+      reader-daemon stop
+      reader --quick
 
 
 Accessing the data

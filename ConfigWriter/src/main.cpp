@@ -6,7 +6,7 @@
 #include <time.h>
 
 #include "../../shared/ConfigReader.h"
-#include "./ConfigWriter.h"
+#include "../../shared/ConfigWriter.h"
 
 
 // Updates startTime to unix equivalent of timeString

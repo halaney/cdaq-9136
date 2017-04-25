@@ -3,10 +3,12 @@
 #include <NIDAQmx.h>
 #include <sstream>
 #include <stdint.h>
+#include <string.h>
 #include <time.h>
 #include <unistd.h>
 
 #include "../../shared/ConfigReader.h"
+#include "../../shared/ConfigWriter.h"
 #include "./Wave.h"
 
 
@@ -21,9 +23,9 @@ void DAQmxErrorCheck(int errorCode, char *errorString, int sizeOfErrorString)
 }
 
 
-int main(void)
+int main(int argc, char *argv[])
 {
-    // Create necessary variables
+    // Create the non-configurable variables for NIDAQmx API
     TaskHandle task;
     const unsigned int numberOfChannels = 8;
     const char *physicalChannelNames = "cDAQ1Mod1/ai0:3, cDAQ1Mod2/ai0:3";  // "cDAQ1Mod1/ai0:3, cDAQ1Mod2/ai0:3" would use eight channels
@@ -31,38 +33,81 @@ int main(void)
     const int sizeOfErrorString = 2048;
     char errorString[sizeOfErrorString];
     int sampsPerChanRead;
+    int16_t *readArray;
 
-    // Read configuration file
-    ConfigReader reader("/home/admin/reader/config/config.ini");
+    // Create variables for tracking time and filenames
+    time_t rawTime;
+    struct tm *timeinfo;
+    char fileNameBuffer[100];
+
+    // Determine which configuration to use
+    std::string configFile;
+    if (argc == 1)
+    {
+        // Read user configuration file
+        configFile = "/home/admin/reader/config/config.ini";
+    }
+    else if (argc == 2 &&
+        (strcmp(argv[1], "--quick") == 0 || strcmp(argv[1], "-q") == 0))
+    {
+        // Read config for quick read
+        configFile = "/home/admin/reader/config/quick-config.ini";
+    }
+    else
+    {
+        std::cout << "Invalid arguments" << std::endl;
+        return 1;
+    }
+    ConfigReader reader(configFile);
+
+
+    // Get configurable variables for NIDAQmx API and display values
     const double expectedLowValue = reader.getExpectedLowValue();
     const double expectedHighValue = reader.getExpectedHighValue();
     const unsigned int sampleRate = reader.getSampleRate();  // Sample rate in Hz per channel (NI-9223 has max sampling rate of 1 MHz)
     const unsigned int numberOfSecondsToRead = reader.getTimeToRead();
-    const unsigned int startTime = reader.getStartTime();
     const std::string recordingId = reader.getRecordingId();
     const unsigned int sampsPerChanToRead = sampleRate * numberOfSecondsToRead;
     unsigned int sizeOfReadArray = numberOfChannels * sampsPerChanToRead;
-    reader.display();
+    unsigned int startTimeTemp;
+    if (argc == 2)
+    {
+        // --quick option should start two minutes after usage
+        // Update the config file to have the correct start time
+        time(&rawTime);
+        startTimeTemp = rawTime + 120;
+        ConfigWriter writer(configFile, startTimeTemp, expectedLowValue,
+            expectedHighValue, sampleRate, numberOfSecondsToRead, recordingId);
+        writer.write();
+        reader.reRead();
+    }
+    else
+    {
+        startTimeTemp = reader.getStartTime();
+    }
+    const unsigned int startTime = startTimeTemp;
+    reader.display();  // If --quick option used the start time display is incorrect
 
-    // Wait till it is 5 seconds before startTime
-    // This way we aren't holding resources and creating tasks without properly closing them if the daemon is restarted
-    time_t rawTime;
     time(&rawTime);
     if ((startTime - rawTime - 5) > 0)
     {
+        // Sleep until it is 5 seconds before startTime
+        // This way we aren't holding resources and creating tasks without
+        // properly closing them if the daemon is restarted
         std::cout << "Sleeping until start time..." << std::endl;
         sleep(startTime - rawTime - 5);
         std::cout << "Waking up..." << std::endl;
     }
-    else  // If it is passed the start time don't bother
+    else
     {
+        // If it's passed the start time don't bother
         std::cout << "Start time has already passed" << std::endl;
         return 0;
     }
+
     // 1GB of memory is close to the max amount this program can use
     // without changing the ADC buffer
     bool multipleReadsRequired = false;
-    int16_t *readArray;
     if (sizeOfReadArray > 400000000)
     {
         // We have to split the acquisition into multiple reads
@@ -98,28 +143,31 @@ int main(void)
             errorString, sizeOfErrorString);
     }
 
-    // Wait till actual time to read
+    // Wait until the actual time to read
     time(&rawTime);
     if (startTime - rawTime > 0)
     {
         sleep(startTime - rawTime);
     }
 
-    // Kick off the task
+    // Kick off the task and begin data acquisition
+    time(&rawTime);  // Update time for output filenames
     DAQmxErrorCheck(DAQmxStartTask(task), errorString, sizeOfErrorString);
 
+    // Read the data until all samples have been acquired
     unsigned int totalSampsPerChanRead = 0;
     while (totalSampsPerChanRead < sampsPerChanToRead)
     {
-        struct tm *timeinfo;
-        char fileNameBuffer[100];
-        time(&rawTime);
         timeinfo = localtime(&rawTime);
         strftime(fileNameBuffer, 100, "%Y%m%d_%H%M%S", timeinfo);
 
         // Perform the read from the ADC buffer
         DAQmxErrorCheck(DAQmxReadBinaryI16(task, -1, DAQmx_Val_WaitInfinitely, DAQmx_Val_GroupByChannel,
                 readArray, sizeOfReadArray, &sampsPerChanRead, NULL), errorString, sizeOfErrorString);
+
+        // Update time for next loop
+        // indicating when exactly we stopped sampling for this file
+        time(&rawTime);
 
         // Write data out to file
         for (unsigned int i = 0; i < numberOfChannels; ++i)
@@ -132,7 +180,7 @@ int main(void)
             std::cout << "Writing: " << fileName << std::endl;
             fp.writeToFile(fileName);
         }
-        totalSampsPerChanRead += sampsPerChanRead;
+        totalSampsPerChanRead += sampsPerChanRead;  // Increment counter
     }
 
     // Clear the task out if it still exists

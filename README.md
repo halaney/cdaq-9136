@@ -14,16 +14,21 @@ Below is an example of how to use the two programs
  1. SSH into the cDAQ-9136 and login
  2. To update the configuration for recording use the ConfigWriter program
     ```bash
-    cd /home/admin/ConfigWriter
-    ./ConfigWriter
+    ConfigWriter
     ```
  3. To reload the configuration used by reader either restart the machine or use
      ```bash
-     /etc/init.d/reader stop
-     /etc/init.d/reader start
+     reader-daemon restart
      ```
      This just stops and starts the reader program
- 4. Once the reader program has recorded the data its output will be stored in
+ 4. Optionally you can just run the reader program with default settings (500 kHz
+     samping rate, record for 5 minutes, starting 2 minutes in the future)
+     like so
+     ```bash
+     reader-daemon stop
+     reader --quick
+     ```
+ 5. Once the reader program has recorded the data its output will be stored in
     /home/admin/reader/output/. It can be retrieved using a SFTP client such as
     Filezilla. Be sure to delete the files after retrieving them to free up space
 
